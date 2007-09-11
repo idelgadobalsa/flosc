@@ -58,7 +58,7 @@ package it.h_umus.osc
 		 
 		 public function getXML():XML{
 		 	var value:String = (type == "s") ? escape(String(value)) : value.toString();
-		 	var node:XML = 	<ARGUMENT TYPE="{type}" VALUE="{value}" />;
+		 	var node:XML = 	<ARGUMENT TYPE={type} VALUE={value} />;
 
 			return node;
 		 } 
