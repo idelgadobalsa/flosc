@@ -67,7 +67,7 @@ package it.h_umus.osc
 		
 		public function getXML():XML
 		{
-			var packetXML:XML = <OSCPACKET ADDRESS="{address}" PORT="{port}" TIME="{time}" />;
+			var packetXML:XML = <OSCPACKET ADDRESS={address} PORT={port} TIME={time} />;
 			for each( var message:OSCMessage in messages)
 				packetXML.MESSAGE+=message.getXML();
 			return packetXML;

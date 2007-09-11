@@ -35,7 +35,7 @@ package it.h_umus.osc
 		
 		
 		public function getXML():XML{
-			var messageNode:XML = 	<MESSAGE NAME="{name}"/>;
+			var messageNode:XML = 	<MESSAGE NAME={_name}/>;
 			for each(var arg:OSCArgument in _argumentsArray)
 				messageNode.ARGUMENT+=arg.getXML();
 				
