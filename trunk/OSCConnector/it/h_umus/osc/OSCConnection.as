@@ -1,9 +1,12 @@
 ﻿/**
  * @author Ignacio Delgado
+ * @version 1.0
  * 
  * OSCConnection object
  * 
  * (c) 2007 http://www.h-umus.it
+ * 
+ * last-modified : 10-set-2007
  * 
  */
 	 
@@ -19,20 +22,18 @@ package it.h_umus.osc
 	public final class OSCConnection extends EventDispatcher {		
 		
 		private var _Socket:XMLSocket;
-		private var _Port:Number;
+		private var _Port:int;
 		private var _Ip:String;
 		
-		protected var mDefaultSendPort:Number;
-		protected var mDefaultSendIp:Number;
 		
 		/**
 		 * 
 		 * @param inIp
 		 * @param inPort
-		 * @return 
 		 * 
+		 * Constructor
 		 */		
-		public function OSCConnection(inIp:String, inPort:Number) {
+		public function OSCConnection(inIp:String, inPort:int) {
 			super();
 			_Ip = inIp;
 			_Port = inPort;			
@@ -41,7 +42,7 @@ package it.h_umus.osc
 	
 		/**
 		 * 
-		 * 
+		 * Start OSC connection
 		 */		
 		public function connect () : void 
 		{
@@ -59,24 +60,59 @@ package it.h_umus.osc
 
 		/**
 		 * 
-		 * 
+		 * Close OSC connection
 		 */		
 		public function disconnect () : void 
 		{
 			_Socket.close();
+			removeListeners();
 		}
 		
+		
+		/**
+		 * 
+		 * @param outPacket
+		 * 
+		 * Build and send XMLDocument-encoded OSC
+		 */		
+		public function sendOSCPacket(outPacket:OSCPacket) : void 
+		{
+			if (_Socket && _Socket.connected) 
+			{
+				_Socket.send(outPacket.getXML());
+				dispatchEvent(new OSCConnectionEvent(OSCConnectionEvent.ON_PACKET_OUT,outPacket));
+			}
+		}
+		
+		public function get ip() : String
+		{
+			return _Ip;
+		}
+		
+		public function get port() : int
+		{
+			return _Port;
+		}
+		
+		public function isConnected() : Boolean 
+		{
+			if(_Socket)
+				return _Socket.connected;
+				
+			return false;
+		}
 		
 		/**
 		 * @private
 		 * @param e
 		 * 
-		 * Event handler for incoming XMLDocument-encoded OSC packets
+		 * Event handler for incoming XML-encoded OSC packets
 		 */		
-		protected function onXml (e:DataEvent) : void 
+		private function onXml (e:DataEvent) : void 
 		{
 			// parse out the packet information
-			try{
+			try
+			{
 				var inXML:XML = new XML(String(e.data));
 				if(inXML.localName() == "OSCPACKET")
 					parseXml(inXML);
@@ -93,7 +129,7 @@ package it.h_umus.osc
 		 * Event handler to respond to successful connection attempt and to
 		 * redispatch the event
 		 */		
-		protected function onConnect (event:Event) : void 
+		private function onConnect (event:Event) : void 
 		{
 			dispatchEvent(event);
 		}
@@ -106,8 +142,9 @@ package it.h_umus.osc
 		 * Event handler called when server kills the connection and to
 		 * redispatch the event
 		 */		
-		protected function onClose (event:Event) : void {
+		private function onClose (event:Event) : void {
 			dispatchEvent(event);
+			removeListeners();
 		}
 	
 	
@@ -118,9 +155,10 @@ package it.h_umus.osc
 		 * Event handler called when an IOError occurs and to
 		 * redispatch the event
 		 */		
-		protected function onIOError(event:IOErrorEvent) : void 
+		private function onIOError(event:IOErrorEvent) : void 
 		{		
 			dispatchEvent(event);
+			removeListeners();
 		}
 		
 		
@@ -131,9 +169,10 @@ package it.h_umus.osc
 		 * Event handler called when a Security Error occurs and to
 		 * redispatch the event
 		 */		
-		protected function onSecurityError(event:Event) : void 
+		private function onSecurityError(event:Event) : void 
 		{		
 			dispatchEvent(event);
+			removeListeners();
 		}
 		
 		
@@ -143,7 +182,7 @@ package it.h_umus.osc
 		 * 
 		 * Parse the messages from some XMLDocument-encoded OSC packet
 		 */			
-		protected function parseXml(node:XML) : void 
+		private function parseXml(node:XML) : void 
 		{
 			//trace("OSCConnection.parseXml(node)");
 			//trace ("\n"+node+"\n");
@@ -190,19 +229,13 @@ package it.h_umus.osc
 		}
 	
 	
-		// *** build and send XMLDocument-encoded OSC
-		/**
-		 * 
-		 * @param outPacket
-		 * 
-		 */		
-		public function sendOSCPacket(outPacket:OSCPacket) : void 
+		private function removeListeners() : void
 		{
-			if (_Socket && _Socket.connected) 
-			{
-				_Socket.send(outPacket.getXML());
-				dispatchEvent(new OSCConnectionEvent(OSCConnectionEvent.ON_PACKET_OUT,outPacket));
-			}
+			_Socket.removeEventListener(Event.CONNECT,onConnect);
+			_Socket.removeEventListener(Event.CLOSE,onClose);
+			_Socket.removeEventListener(DataEvent.DATA,onXml);
+			_Socket.removeEventListener(IOErrorEvent.IO_ERROR, onIOError);
+			_Socket.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, onSecurityError);
 		}
 	}
 }
