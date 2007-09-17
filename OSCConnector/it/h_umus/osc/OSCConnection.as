@@ -64,7 +64,8 @@ package it.h_umus.osc
 		 * @see flash.net.XMLSocket.connect
 		 */		
 		public function OSCConnection(host:String=null, port:int=0) {
-			super(host, port);	
+			super(host, port);
+			this.addEventListener(DataEvent.DATA,onXml);	
 		}
 
 	
