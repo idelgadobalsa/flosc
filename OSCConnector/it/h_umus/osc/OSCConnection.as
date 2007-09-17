@@ -1,14 +1,4 @@
-﻿/**
- * @author Ignacio Delgado
- * @version 1.0
- * 
- * OSCConnection object
- * 
- * (c) 2007 http://www.h-umus.it
- * 
- * last-modified : 10-set-2007
- * 
- */
+﻿
 	 
 package it.h_umus.osc 
 { 
@@ -19,89 +9,83 @@ package it.h_umus.osc
 	import flash.net.XMLSocket;
 	import flash.events.SecurityErrorEvent;
 	
-	public final class OSCConnection extends EventDispatcher {		
-		
-		private var _Socket:XMLSocket;
-		private var _Port:int;
-		private var _Ip:String;
-		
+
+	/**
+	 * Dispatched when an OSC packet incomes
+	 * 
+	 * @eventType it.h_umus.osc.OSCConnectionEvent.OSC_PACKET_IN
+	 **/
+	[Event(name="OSCPacketIn", type="it.h_umus.osc.OSCConnectionEvent")]
+	
+	/**
+	 * Dispatched when an OSC packet outgoes
+	 * 
+	 * @eventType it.h_umus.osc.OSCConnectionEvent.OSC_PACKET_OUT
+	 **/
+	[Event(name="OSCPacketOut", type="it.h_umus.osc.OSCConnectionEvent")]
+	
+	[Exclude(name="send", kind="method")]
+	
+	 /**
+	 * The OSCConnection object allows "virtual" OSC communication. It makes use
+	 * of the Flosc gateway server that translates UDP/OSC packets into TCP/OSC XML-like
+	 * packets as defined by the Flosc DTD.
+	 * 
+	 * <p>The OSCConnection object extends an XMLSocket connection, communicating with 
+	 * Flosc server in OSC-XML-Encoded, receiving and sending data. The two main events defined 
+	 * by the OSCConnectionEvent allow knowing when an OSC packet is recieved and  implements 
+	 * sending methods for just OSCMessages</p>
+	 * 
+	 * <p>@copy 2007 http://www.h-umus.it</p>
+	 * 
+	 * @author Ignacio Delgado
+	 * @see http://code.google.com/p/flosc
+	 * @see http://opensoundcontrol.org
+	 * @see flash.net.XMLSocket
+	 * @see it.h_umus.osc.OSCConnectionEvent
+	 * @langversion ActionScript 3.0
+	 * @playerversion Flash 9+
+	 */
+	public class OSCConnection extends XMLSocket {		
 		
 		/**
+		 * Creates a new OSCConnection. The OSCConnection object is not initially 
+		 * connected to any server. You must call the OSCConnection.connect() 
+		 * method to connect the object to a server.
 		 * 
-		 * @param inIp
-		 * @param inPort
+		 * @param inIp A fully qualified DNS domain name or an IP address in the 
+		 * form aaa.bbb.ccc.ddd. You can also specify null to connect to the host 
+		 * server on which the SWF file resides. If the SWF file issuing this call 
+		 * is running in a web browser, host must be in the same domain as the SWF file.
+		 * @param inPort The TCP port number on the host used to establish a 
+		 * connection. The port number must be 1024 or greater, unless a policy 
+		 * file is being used.
 		 * 
-		 * Constructor
+		 * @see flash.net.XMLSocket.connect
 		 */		
-		public function OSCConnection(inIp:String, inPort:int) {
-			super();
-			_Ip = inIp;
-			_Port = inPort;			
+		public function OSCConnection(host:String=null, port:int=0) {
+			super(host, port);	
 		}
 
 	
 		/**
-		 * 
-		 * Start OSC connection
-		 */		
-		public function connect () : void 
-		{
-			_Socket = new XMLSocket();
-			
-			_Socket.addEventListener(Event.CONNECT,onConnect);
-			_Socket.addEventListener(Event.CLOSE,onClose);
-			_Socket.addEventListener(DataEvent.DATA,onXml);
-			_Socket.addEventListener(IOErrorEvent.IO_ERROR, onIOError);
-			_Socket.addEventListener(SecurityErrorEvent.SECURITY_ERROR, onSecurityError);
-
-			_Socket.connect(_Ip,_Port);
-		}
-
-
-		/**
-		 * 
-		 * Close OSC connection
-		 */		
-		public function disconnect () : void 
-		{
-			_Socket.close();
-			removeListeners();
-		}
-		
-		
-		/**
-		 * 
+		 * Converts the OSCPacket into and XML and sends it to the Flosc server.
 		 * @param outPacket
 		 * 
 		 * Build and send XMLDocument-encoded OSC
 		 */		
 		public function sendOSCPacket(outPacket:OSCPacket) : void 
 		{
-			if (_Socket && _Socket.connected) 
-			{
-				_Socket.send(outPacket.getXML());
-				dispatchEvent(new OSCConnectionEvent(OSCConnectionEvent.ON_PACKET_OUT,outPacket));
-			}
+			super.send(outPacket.getXML());
+			dispatchEvent(new OSCConnectionEvent(OSCConnectionEvent.OSC_PACKET_OUT,outPacket));
 		}
 		
-		public function get ip() : String
+		override public function send(object:*):void
 		{
-			return _Ip;
+			throw new Error("Use sendOSCPacket()");
 		}
 		
-		public function get port() : int
-		{
-			return _Port;
-		}
-		
-		public function isConnected() : Boolean 
-		{
-			if(_Socket)
-				return _Socket.connected;
-				
-			return false;
-		}
-		
+
 		/**
 		 * @private
 		 * @param e
@@ -110,6 +94,7 @@ package it.h_umus.osc
 		 */		
 		private function onXml (e:DataEvent) : void 
 		{
+			e.stopImmediatePropagation();
 			// parse out the packet information
 			try
 			{
@@ -121,66 +106,12 @@ package it.h_umus.osc
 			{
 			}
 		}
-	
-	
+		
 		/**
-		 * @private
-		 * @param event
-		 * Event handler to respond to successful connection attempt and to
-		 * redispatch the event
-		 */		
-		private function onConnect (event:Event) : void 
-		{
-			dispatchEvent(event);
-		}
-	
-	
-		/**
-		 * @private
-		 * @param event
+		 * Parse the messages from some XMLDocument-encoded OSC packet.
 		 * 
-		 * Event handler called when server kills the connection and to
-		 * redispatch the event
-		 */		
-		private function onClose (event:Event) : void {
-			dispatchEvent(event);
-			removeListeners();
-		}
-	
-	
-		/**
-		 * @private
-		 * @param event
-		 * 
-		 * Event handler called when an IOError occurs and to
-		 * redispatch the event
-		 */		
-		private function onIOError(event:IOErrorEvent) : void 
-		{		
-			dispatchEvent(event);
-			removeListeners();
-		}
-		
-		
-		/**
-		 * @private
-		 * @param event
-		 * 
-		 * Event handler called when a Security Error occurs and to
-		 * redispatch the event
-		 */		
-		private function onSecurityError(event:Event) : void 
-		{		
-			dispatchEvent(event);
-			removeListeners();
-		}
-		
-		
-		/**
 		 * @private
 		 * @param node
-		 * 
-		 * Parse the messages from some XMLDocument-encoded OSC packet
 		 */			
 		private function parseXml(node:XML) : void 
 		{
@@ -225,17 +156,7 @@ package it.h_umus.osc
 				}
 				packet.addMessage(oscMessage);
 			}
-			dispatchEvent(new OSCConnectionEvent(OSCConnectionEvent.ON_PACKET_IN,packet));
-		}
-	
-	
-		private function removeListeners() : void
-		{
-			_Socket.removeEventListener(Event.CONNECT,onConnect);
-			_Socket.removeEventListener(Event.CLOSE,onClose);
-			_Socket.removeEventListener(DataEvent.DATA,onXml);
-			_Socket.removeEventListener(IOErrorEvent.IO_ERROR, onIOError);
-			_Socket.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, onSecurityError);
+			dispatchEvent(new OSCConnectionEvent(OSCConnectionEvent.OSC_PACKET_IN,packet));
 		}
 	}
 }
