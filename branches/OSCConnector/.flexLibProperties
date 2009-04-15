@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flexLibProperties version="1">
+<includeClasses>
+<classEntry path="it.h_umus.osc.OSCArgument"/>
+<classEntry path="it.h_umus.osc.OSCConnection"/>
+<classEntry path="it.h_umus.osc.OSCConnectionEvent"/>
+<classEntry path="it.h_umus.osc.OSCMessage"/>
+<classEntry path="it.h_umus.osc.OSCPacket"/>
+</includeClasses>
+<includeResources/>
+<namespaceManifests/>
+</flexLibProperties>
