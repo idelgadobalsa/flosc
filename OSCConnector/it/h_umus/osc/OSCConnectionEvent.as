@@ -31,7 +31,7 @@ package it.h_umus.osc
 		 * 
  		 * @eventType OSCPacketIn 
 		 */		
-		public static const OSC_PACKET_IN : String 	= "OSCPacketIn";
+		public static const OSC_PACKET_IN : String 	= "it.h_umus.osc.OSCPacketIn";
 		
 		/**
 		 * The OSCConnectionEvent.OSC_PACKET_OUT constant defines the value of the 
@@ -40,7 +40,7 @@ package it.h_umus.osc
 		 * 
 		 * @eventType OSCPacketOut
 		 */		
-		public static const OSC_PACKET_OUT : String = "OSCPacketOut";
+		public static const OSC_PACKET_OUT : String = "it.h_umus.osc.OSCPacketOut";
 		
 		/**
 		* The OSCPacket loaded into Flash Player.
