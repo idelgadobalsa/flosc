@@ -12,7 +12,7 @@ import java.net.InetAddress;
 public class OscPacket {
 
     private long time;
-    private Vector messages;
+    private Vector<OscMessage> messages;
 
     public InetAddress address;
     public int port;
@@ -26,7 +26,7 @@ public class OscPacket {
     public OscPacket() 
     {
 		time = 0;
-		messages = new Vector();
+		messages = new Vector<OscMessage>();
     }
 
 
@@ -40,7 +40,7 @@ public class OscPacket {
     public OscPacket(long time, InetAddress address, int port) 
     {
 		this.time = time;
-		messages = new Vector();
+		messages = new Vector<OscMessage>();
 		this.address = address;
 		this.port = port;
     }
@@ -120,7 +120,7 @@ public class OscPacket {
 		    "\" PORT=\"" + port +
 		    "\" TIME=\""+ time + "\">";
 	
-		Enumeration m = messages.elements();
+		Enumeration<OscMessage> m = messages.elements();
 		while (m.hasMoreElements()) 
 		{
 		    OscMessage mess = (OscMessage)m.nextElement();
@@ -151,7 +151,7 @@ public class OscPacket {
 		}
 	
 		// messages
-		Enumeration m = messages.elements();
+		Enumeration<OscMessage> m = messages.elements();
 		while (m.hasMoreElements()) 
 		{
 		    OscMessage mess = (OscMessage)m.nextElement();
